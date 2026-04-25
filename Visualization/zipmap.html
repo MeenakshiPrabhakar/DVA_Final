@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>NYC ZIP Choropleth</title>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<style>
+    body { font-family: Arial; background: #e8f4f8; margin: 0; padding: 10px; }
+    h2 { margin: 10px 10px 4px; color: #111; }
+    #info { margin: 0 10px 10px; font-size: 13px; color: #555; }
+    #map-wrap {
+        background: #a8cfe0;
+        border-radius: 8px;
+        display: inline-block;
+        padding: 6px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    #choropleth { display: block; }
+    #tooltip {
+        position: absolute;
+        background: white;
+        border: 1px solid #bbb;
+        padding: 8px 12px;
+        font-size: 13px;
+        pointer-events: none;
+        opacity: 0;
+        border-radius: 5px;
+        box-shadow: 2px 3px 10px rgba(0,0,0,0.18);
+        line-height: 1.7;
+    }
+</style>
+</head>
+<body>
+<h2>New York City Population by ZIP Code</h2>
+<div id="info">Hover over any area to see details. Only NYC ZIP codes are shown.</div>
+<div id="map-wrap"><svg id="choropleth"></svg></div>
+<div id="tooltip"></div>
+<script>
+const POP_DATA = [{"zip": "10001", "pop": 17310, "borough": "Manhattan"}, {"zip": "10002", "pop": 84870, "borough": "Manhattan"}, {"zip": "10003", "pop": 53673, "borough": "Manhattan"}, {"zip": "10004", "pop": 1225, "borough": "Manhattan"}, {"zip": "10005", "pop": 884, "borough": "Manhattan"}, {"zip": "10006", "pop": 1447, "borough": "Manhattan"}, {"zip": "10007", "pop": 3522, "borough": "Manhattan"}, {"zip": "10009", "pop": 58595, "borough": "Manhattan"}, {"zip": "10010", "pop": 26408, "borough": "Manhattan"}, {"zip": "10011", "pop": 46669, "borough": "Manhattan"}, {"zip": "10012", "pop": 26000, "borough": "Manhattan"}, {"zip": "10013", "pop": 25042, "borough": "Manhattan"}, {"zip": "10014", "pop": 32667, "borough": "Manhattan"}, {"zip": "10016", "pop": 51217, "borough": "Manhattan"}, {"zip": "10017", "pop": 16201, "borough": "Manhattan"}, {"zip": "10018", "pop": 4255, "borough": "Manhattan"}, {"zip": "10019", "pop": 36012, "borough": "Manhattan"}, {"zip": "10020", "pop": 1, "borough": "Manhattan"}, {"zip": "10021", "pop": 102078, "borough": "Manhattan"}, {"zip": "10022", "pop": 30642, "borough": "Manhattan"}, {"zip": "10023", "pop": 62206, "borough": "Manhattan"}, {"zip": "10024", "pop": 61414, "borough": "Manhattan"}, {"zip": "10025", "pop": 97086, "borough": "Manhattan"}, {"zip": "10026", "pop": 30377, "borough": "Manhattan"}, {"zip": "10027", "pop": 56168, "borough": "Manhattan"}, {"zip": "10028", "pop": 44987, "borough": "Manhattan"}, {"zip": "10029", "pop": 75390, "borough": "Manhattan"}, {"zip": "10030", "pop": 25847, "borough": "Manhattan"}, {"zip": "10031", "pop": 60221, "borough": "Manhattan"}, {"zip": "10032", "pop": 63842, "borough": "Manhattan"}, {"zip": "10033", "pop": 58259, "borough": "Manhattan"}, {"zip": "10034", "pop": 41756, "borough": "Manhattan"}, {"zip": "10035", "pop": 32702, "borough": "Manhattan"}, {"zip": "10036", "pop": 18751, "borough": "Manhattan"}, {"zip": "10037", "pop": 16984, "borough": "Manhattan"}, {"zip": "10038", "pop": 15574, "borough": "Manhattan"}, {"zip": "10039", "pop": 21737, "borough": "Manhattan"}, {"zip": "10040", "pop": 46599, "borough": "Manhattan"}, {"zip": "10041", "pop": 0, "borough": "Manhattan"}, {"zip": "10044", "pop": 9520, "borough": "Manhattan"}, {"zip": "10048", "pop": 55, "borough": "Manhattan"}, {"zip": "10069", "pop": 1403, "borough": "Manhattan"}, {"zip": "10103", "pop": 0, "borough": "Manhattan"}, {"zip": "10111", "pop": 0, "borough": "Manhattan"}, {"zip": "10112", "pop": 0, "borough": "Manhattan"}, {"zip": "10115", "pop": 0, "borough": "Manhattan"}, {"zip": "10119", "pop": 0, "borough": "Manhattan"}, {"zip": "10128", "pop": 59856, "borough": "Manhattan"}, {"zip": "10152", "pop": 0, "borough": "Manhattan"}, {"zip": "10153", "pop": 0, "borough": "Manhattan"}, {"zip": "10154", "pop": 0, "borough": "Manhattan"}, {"zip": "10162", "pop": 1726, "borough": "Manhattan"}, {"zip": "10165", "pop": 7, "borough": "Manhattan"}, {"zip": "10167", "pop": 0, "borough": "Manhattan"}, {"zip": "10169", "pop": 0, "borough": "Manhattan"}, {"zip": "10170", "pop": 1, "borough": "Manhattan"}, {"zip": "10171", "pop": 1, "borough": "Manhattan"}, {"zip": "10172", "pop": 0, "borough": "Manhattan"}, {"zip": "10173", "pop": 0, "borough": "Manhattan"}, {"zip": "10177", "pop": 0, "borough": "Manhattan"}, {"zip": "10271", "pop": 0, "borough": "Manhattan"}, {"zip": "10278", "pop": 0, "borough": "Manhattan"}, {"zip": "10279", "pop": 0, "borough": "Manhattan"}, {"zip": "10280", "pop": 6614, "borough": "Manhattan"}, {"zip": "10282", "pop": 1574, "borough": "Manhattan"}, {"zip": "10301", "pop": 38805, "borough": "Staten Island"}, {"zip": "10302", "pop": 16406, "borough": "Staten Island"}, {"zip": "10303", "pop": 23530, "borough": "Staten Island"}, {"zip": "10304", "pop": 38972, "borough": "Staten Island"}, {"zip": "10305", "pop": 38450, "borough": "Staten Island"}, {"zip": "10306", "pop": 55698, "borough": "Staten Island"}, {"zip": "10307", "pop": 11669, "borough": "Staten Island"}, {"zip": "10308", "pop": 26451, "borough": "Staten Island"}, {"zip": "10309", "pop": 27207, "borough": "Staten Island"}, {"zip": "10310", "pop": 22852, "borough": "Staten Island"}, {"zip": "10312", "pop": 58867, "borough": "Staten Island"}, {"zip": "10314", "pop": 84821, "borough": "Staten Island"}, {"zip": "10451", "pop": 40961, "borough": "Bronx"}, {"zip": "10452", "pop": 72138, "borough": "Bronx"}, {"zip": "10453", "pop": 76775, "borough": "Bronx"}, {"zip": "10454", "pop": 34976, "borough": "Bronx"}, {"zip": "10455", "pop": 37465, "borough": "Bronx"}, {"zip": "10456", "pop": 76656, "borough": "Bronx"}, {"zip": "10457", "pop": 69048, "borough": "Bronx"}, {"zip": "10458", "pop": 77840, "borough": "Bronx"}, {"zip": "10459", "pop": 39080, "borough": "Bronx"}, {"zip": "10460", "pop": 53707, "borough": "Bronx"}, {"zip": "10461", "pop": 49808, "borough": "Bronx"}, {"zip": "10462", "pop": 72077, "borough": "Bronx"}, {"zip": "10463", "pop": 65576, "borough": "Manhattan"}, {"zip": "10464", "pop": 4634, "borough": "Bronx"}, {"zip": "10465", "pop": 42500, "borough": "Bronx"}, {"zip": "10466", "pop": 68787, "borough": "Bronx"}, {"zip": "10467", "pop": 94342, "borough": "Bronx"}, {"zip": "10468", "pop": 78309, "borough": "Bronx"}, {"zip": "10469", "pop": 63345, "borough": "Bronx"}, {"zip": "10470", "pop": 15780, "borough": "Bronx"}, {"zip": "10471", "pop": 23413, "borough": "Bronx"}, {"zip": "10472", "pop": 64867, "borough": "Bronx"}, {"zip": "10473", "pop": 56166, "borough": "Bronx"}, {"zip": "10474", "pop": 11354, "borough": "Bronx"}, {"zip": "10475", "pop": 38086, "borough": "Bronx"}, {"zip": "11001", "pop": 3143, "borough": "Queens"}, {"zip": "11004", "pop": 14682, "borough": "Queens"}, {"zip": "11005", "pop": 2195, "borough": "Queens"}, {"zip": "11040", "pop": 1681, "borough": "Queens"}, {"zip": "11101", "pop": 25595, "borough": "Queens"}, {"zip": "11102", "pop": 36291, "borough": "Queens"}, {"zip": "11103", "pop": 44321, "borough": "Queens"}, {"zip": "11104", "pop": 29506, "borough": "Queens"}, {"zip": "11105", "pop": 42117, "borough": "Queens"}, {"zip": "11106", "pop": 43130, "borough": "Queens"}, {"zip": "11201", "pop": 47746, "borough": "Brooklyn"}, {"zip": "11203", "pop": 84498, "borough": "Brooklyn"}, {"zip": "11204", "pop": 74880, "borough": "Brooklyn"}, {"zip": "11205", "pop": 35622, "borough": "Brooklyn"}, {"zip": "11206", "pop": 69032, "borough": "Brooklyn"}, {"zip": "11207", "pop": 86551, "borough": "Brooklyn"}, {"zip": "11208", "pop": 87165, "borough": "Brooklyn"}, {"zip": "11209", "pop": 69840, "borough": "Brooklyn"}, {"zip": "11210", "pop": 62308, "borough": "Brooklyn"}, {"zip": "11211", "pop": 85089, "borough": "Brooklyn"}, {"zip": "11212", "pop": 85161, "borough": "Brooklyn"}, {"zip": "11213", "pop": 65440, "borough": "Brooklyn"}, {"zip": "11214", "pop": 83546, "borough": "Brooklyn"}, {"zip": "11215", "pop": 63001, "borough": "Brooklyn"}, {"zip": "11216", "pop": 55775, "borough": "Brooklyn"}, {"zip": "11217", "pop": 35353, "borough": "Brooklyn"}, {"zip": "11218", "pop": 74611, "borough": "Brooklyn"}, {"zip": "11219", "pop": 85987, "borough": "Brooklyn"}, {"zip": "11220", "pop": 92718, "borough": "Brooklyn"}, {"zip": "11221", "pop": 76363, "borough": "Brooklyn"}, {"zip": "11222", "pop": 39360, "borough": "Brooklyn"}, {"zip": "11223", "pop": 77691, "borough": "Brooklyn"}, {"zip": "11224", "pop": 51205, "borough": "Brooklyn"}, {"zip": "11225", "pop": 63774, "borough": "Brooklyn"}, {"zip": "11226", "pop": 106154, "borough": "Brooklyn"}, {"zip": "11228", "pop": 41172, "borough": "Brooklyn"}, {"zip": "11229", "pop": 80554, "borough": "Brooklyn"}, {"zip": "11230", "pop": 88933, "borough": "Brooklyn"}, {"zip": "11231", "pop": 32974, "borough": "Brooklyn"}, {"zip": "11232", "pop": 27723, "borough": "Brooklyn"}, {"zip": "11233", "pop": 61955, "borough": "Brooklyn"}, {"zip": "11234", "pop": 86898, "borough": "Brooklyn"}, {"zip": "11235", "pop": 77451, "borough": "Brooklyn"}, {"zip": "11236", "pop": 96301, "borough": "Brooklyn"}, {"zip": "11237", "pop": 48910, "borough": "Brooklyn"}, {"zip": "11238", "pop": 48965, "borough": "Brooklyn"}, {"zip": "11239", "pop": 14620, "borough": "Brooklyn"}, {"zip": "11354", "pop": 54329, "borough": "Queens"}, {"zip": "11355", "pop": 83281, "borough": "Queens"}, {"zip": "11356", "pop": 20444, "borough": "Queens"}, {"zip": "11357", "pop": 39491, "borough": "Queens"}, {"zip": "11358", "pop": 38647, "borough": "Queens"}, {"zip": "11360", "pop": 19350, "borough": "Queens"}, {"zip": "11361", "pop": 29206, "borough": "Queens"}, {"zip": "11362", "pop": 17502, "borough": "Queens"}, {"zip": "11363", "pop": 6917, "borough": "Queens"}, {"zip": "11364", "pop": 34539, "borough": "Queens"}, {"zip": "11365", "pop": 41566, "borough": "Queens"}, {"zip": "11366", "pop": 13366, "borough": "Queens"}, {"zip": "11367", "pop": 38216, "borough": "Queens"}, {"zip": "11368", "pop": 98841, "borough": "Queens"}, {"zip": "11369", "pop": 36110, "borough": "Queens"}, {"zip": "11370", "pop": 43142, "borough": "Queens"}, {"zip": "11371", "pop": 0, "borough": "Queens"}, {"zip": "11372", "pop": 71308, "borough": "Queens"}, {"zip": "11373", "pop": 105723, "borough": "Queens"}, {"zip": "11374", "pop": 44189, "borough": "Queens"}, {"zip": "11375", "pop": 70204, "borough": "Queens"}, {"zip": "11377", "pop": 88339, "borough": "Queens"}, {"zip": "11378", "pop": 34053, "borough": "Queens"}, {"zip": "11379", "pop": 28984, "borough": "Queens"}, {"zip": "11385", "pop": 97524, "borough": "Queens"}, {"zip": "11411", "pop": 21282, "borough": "Queens"}, {"zip": "11412", "pop": 37452, "borough": "Queens"}, {"zip": "11413", "pop": 39827, "borough": "Queens"}, {"zip": "11414", "pop": 28121, "borough": "Queens"}, {"zip": "11415", "pop": 20956, "borough": "Queens"}, {"zip": "11416", "pop": 23668, "borough": "Queens"}, {"zip": "11417", "pop": 28607, "borough": "Queens"}, {"zip": "11418", "pop": 36571, "borough": "Queens"}, {"zip": "11419", "pop": 48867, "borough": "Queens"}, {"zip": "11420", "pop": 45498, "borough": "Queens"}, {"zip": "11421", "pop": 37664, "borough": "Queens"}, {"zip": "11422", "pop": 30449, "borough": "Queens"}, {"zip": "11423", "pop": 31240, "borough": "Queens"}, {"zip": "11426", "pop": 18727, "borough": "Queens"}, {"zip": "11427", "pop": 23014, "borough": "Queens"}, {"zip": "11428", "pop": 21023, "borough": "Queens"}, {"zip": "11429", "pop": 27647, "borough": "Queens"}, {"zip": "11430", "pop": 229, "borough": "Queens"}, {"zip": "11432", "pop": 57045, "borough": "Queens"}, {"zip": "11433", "pop": 28435, "borough": "Queens"}, {"zip": "11434", "pop": 59142, "borough": "Queens"}, {"zip": "11435", "pop": 53877, "borough": "Queens"}, {"zip": "11436", "pop": 18148, "borough": "Queens"}, {"zip": "11691", "pop": 56184, "borough": "Queens"}, {"zip": "11692", "pop": 15893, "borough": "Queens"}, {"zip": "11693", "pop": 11157, "borough": "Queens"}, {"zip": "11694", "pop": 19278, "borough": "Queens"}, {"zip": "11697", "pop": 4226, "borough": "Queens"}];
+
+const width = 860, height = 680;
+
+const svg = d3.select("#choropleth").attr("width", width).attr("height", height);
+const tooltip = d3.select("#tooltip");
+
+const color = d3.scaleQuantize().range(d3.schemeBlues[6]);
+
+function getZip(props) {
+    return String(props.ZCTA5CE10 || props.zip || props.ZIP ||
+                  props.postal_code || props.ZIPCODE || props.modzcta || "")
+           .padStart(5, "0");
+}
+
+const valueMap   = new Map(POP_DATA.map(d => [d.zip, d.pop]));
+const boroughMap = new Map(POP_DATA.map(d => [d.zip, d.borough]));
+const nycZips    = new Set(POP_DATA.map(d => d.zip));
+
+const pops = POP_DATA.map(d => d.pop).filter(v => v > 0);
+color.domain(d3.extent(pops));
+
+d3.json("ny_zip_map.json").then(function(geoData) {
+
+    const nycFeatures = geoData.features.filter(f => nycZips.has(getZip(f.properties)));
+    console.log("NYC features found:", nycFeatures.length, "of", geoData.features.length);
+
+    const nycGeo = { type: "FeatureCollection", features: nycFeatures };
+    const projection = d3.geoMercator().fitSize([width, height], nycGeo);
+    const path = d3.geoPath().projection(projection);
+
+    svg.selectAll("path")
+        .data(nycFeatures)
+        .enter().append("path")
+        .attr("d", path)
+        .attr("fill", function(d) {
+            const val = valueMap.get(getZip(d.properties));
+            return val > 0 ? color(val) : "#ccc";
+        })
+        .attr("stroke", "white")
+        .attr("stroke-width", 0.7)
+        .on("mousemove", function(d) {
+            const zip = getZip(d.properties);
+            const val = valueMap.get(zip);
+            const bor = boroughMap.get(zip);
+            tooltip.style("opacity", 1)
+                .html("<strong>ZIP:</strong> " + zip + "<br>" +
+                      (bor ? "<strong>Borough:</strong> " + bor + "<br>" : "") +
+                      "<strong>Population:</strong> " + (val ? val.toLocaleString() : "0"))
+                .style("left", (d3.event.pageX + 14) + "px")
+                .style("top",  (d3.event.pageY - 36) + "px");
+        })
+        .on("mouseout", function() { tooltip.style("opacity", 0); });
+
+    const bw = 46, bh = 16;
+    const leg = svg.append("g").attr("transform", "translate(18,18)");
+
+    leg.append("rect")
+        .attr("x", -8).attr("y", -22)
+        .attr("width", 7 * bw + 24).attr("height", bh + 42)
+        .attr("fill","white").attr("opacity",.8).attr("rx",5);
+
+    leg.append("text").attr("y",-6).attr("font-size","12px")
+        .attr("font-weight","bold").text("Population per ZIP");
+
+    const legData = color.range().map(c => {
+        const [lo, hi] = color.invertExtent(c);
+        return { color: c, lo, hi };
+    });
+
+    leg.selectAll("rect.b").data(legData).enter()
+        .append("rect").attr("class","b")
+        .attr("x",(d,i)=>i*bw).attr("y",0)
+        .attr("width",bw).attr("height",bh)
+        .attr("fill",d=>d.color);
+
+    leg.selectAll("text.l").data(legData).enter()
+        .append("text").attr("class","l")
+        .attr("x",(d,i)=>i*bw).attr("y",bh+14)
+        .attr("font-size","10px")
+        .text(d => d.lo != null ? Math.round(d.lo/1000)+"k" : "");
+
+    const nx = legData.length * bw + 8;
+    leg.append("rect").attr("x",nx).attr("y",0)
+        .attr("width",bw).attr("height",bh).attr("fill","#ccc");
+    leg.append("text").attr("x",nx).attr("y",bh+14)
+        .attr("font-size","10px").text("~0 pop");
+
+}).catch(err => {
+    d3.select("body").append("p").style("color","red")
+        .text("Could not load ny_zip_map.json: " + err.message);
+});
+</script>
+</body>
+</html>

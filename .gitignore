@@ -1,0 +1,6 @@
+*.csv
+bertopic_output_*/
+.DS_Store
+Airbnb_Data
+Hotel_Data
+merged_features.csv
