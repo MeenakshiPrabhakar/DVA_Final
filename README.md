@@ -1,4 +1,4 @@
-**Team 27** — Comparative Visualization for Airbnbs and Hotels
+***Team 27*** — Comparative Visualization for Airbnbs and Hotels
 Polly Baugh, Anwitha Kollipara, Niti Mirkhelkar, Vibha Narasayya,
 Meenakshi Prabhakar, Skye Solomon
 
