@@ -1,10 +1,12 @@
-***Team 27*** — Comparative Visualization for Airbnbs and Hotels
+**Team 27** 
+Comparative Visualization for Airbnbs and Hotels
 Polly Baugh, Anwitha Kollipara, Niti Mirkhelkar, Vibha Narasayya,
 Meenakshi Prabhakar, Skye Solomon
 
 Repository: https://github.com/MeenakshiPrabhakar/DVA_Final
 
 **DESCRIPTION**
+---
 This package compares Airbnb listings and hotels across four U.S. metros 
 San Francisco, San Diego, Los Angeles, and New York City by mining what
 guests actually write in their reviews and presenting the result as an
@@ -43,6 +45,7 @@ accommodation value beyond a simple star rating.
 
 
 **INSTALLATION**
+---
 First clone the repo: 
 git clone https://github.com/MeenakshiPrabhakar/DVA_Final.git
 cd DVA_Final
@@ -71,6 +74,7 @@ records into a single CSV consumed by the scoring scripts.
 
 
 **EXECUTION**
+---
 Run the scripts in pipeline order from the repository root with the
 virtual environment activated:
 
@@ -142,6 +146,7 @@ Step 7 — View the result:
 
 
 **MORE INFO:**
+---
 Core scripts:
 - `score_reviews.py`: builds keyword-based frequency features from review text.
 - `predict_rating.py`: trains an XGBoost regressor and writes scored outputs to `model_output/`.
